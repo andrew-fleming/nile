@@ -1,5 +1,6 @@
 """Command to call or invoke StarkNet smart contracts."""
 import logging
+import re
 import os
 import subprocess
 
@@ -7,10 +8,11 @@ from nile import deployments
 from nile.common import GATEWAYS, prepare_params
 from nile.core import account
 from nile.utils import hex_address
+from nile.utils.status import status
 
 
 def call_or_invoke(
-    contract, type, method, params, network, signature=None, max_fee=None
+    contract, type, method, params, network, signature=None, max_fee=None, track=False, debug=False
 ):
     """Call or invoke functions of StarkNet smart contracts."""
     if isinstance(contract, account.Account):
@@ -56,7 +58,7 @@ def call_or_invoke(
     command.append("--no_wallet")
 
     try:
-        return subprocess.check_output(command).strip().decode("utf-8")
+        output = subprocess.check_output(command).strip().decode("utf-8")
     except subprocess.CalledProcessError:
         p = subprocess.Popen(command, stderr=subprocess.PIPE)
         _, error = p.communicate()
@@ -76,3 +78,15 @@ def call_or_invoke(
             )
 
         return ""
+
+    if type != "call" and output:
+        logging.info(output)
+        transaction_hash = _get_transaction_hash(output)
+        return status(transaction_hash, network, track, debug)
+
+    return output
+
+
+def _get_transaction_hash(string):
+    match = re.search(r"Transaction hash: (0x[\da-f]{1,64})", string)
+    return match.groups()[0] if match else None

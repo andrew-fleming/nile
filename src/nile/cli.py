@@ -19,7 +19,7 @@ from nile.core.run import run as run_command
 from nile.core.test import test as test_command
 from nile.core.version import version as version_command
 from nile.utils import normalize_number
-from nile.utils.debug import debug as debug_command
+from nile.utils.status import status as status_command
 from nile.utils.get_accounts import get_accounts as get_accounts_command
 from nile.utils.get_accounts import (
     get_predeployed_accounts as get_predeployed_accounts_command,
@@ -57,6 +57,28 @@ def _validate_network(_ctx, _param, value):
     raise click.BadParameter(f"'{value}'. Use one of {NETWORKS}")
 
 
+def track_option(f):
+    """Configure TRACK option for the cli."""
+    return click.option(  # noqa: E731
+        "--track",
+        "-t",
+        is_flag=True,
+        default=False,
+        help="Wait for the final (resulting) transaction status.",
+    )(f)
+
+
+def debug_option(f):
+    """Configure DEBUG option for the cli."""
+    return click.option(  # noqa: E731
+        "--debug",
+        "-d",
+        is_flag=True,
+        default=False,
+        help="Try debugging with local contracts. See `nile debug`.",
+    )(f)
+
+
 @click.group()
 def cli():
     """Nile CLI group."""
@@ -89,26 +111,46 @@ def run(path, network):
 @network_option
 @click.option("--alias")
 @click.option("--abi")
-def deploy(artifact, arguments, network, alias, abi=None):
+@track_option
+@debug_option
+def deploy(artifact, arguments, network, alias, track, debug, abi=None):
     """Deploy StarkNet smart contract."""
-    deploy_command(artifact, arguments, network, alias, abi=abi)
+    deploy_command(
+        contract_name=artifact,
+        arguments=arguments,
+        network=network,
+        alias=alias,
+        abi=abi,
+        track=track,
+        debug=debug
+    )
 
 
 @cli.command()
 @click.argument("artifact", nargs=1)
 @network_option
 @click.option("--alias")
-def declare(artifact, network, alias):
+@track_option
+@debug_option
+def declare(artifact, network, alias, track, debug):
     """Declare StarkNet smart contract."""
-    declare_command(artifact, network, alias)
+    declare_command(
+        contract_name=artifact,
+        network=network,
+        alias=alias,
+        track=track,
+        debug=debug
+    )
 
 
 @cli.command()
 @click.argument("signer", nargs=1)
 @network_option
-def setup(signer, network):
+@track_option
+@debug_option
+def setup(signer, network, track=False, debug=False):
     """Set up an Account contract."""
-    Account(signer, network)
+    Account(signer, network=network, track=track, debug=debug)
 
 
 @cli.command()
@@ -117,8 +159,10 @@ def setup(signer, network):
 @click.argument("method", nargs=1)
 @click.argument("params", nargs=-1)
 @click.option("--max_fee", nargs=1)
+@track_option
+@debug_option
 @network_option
-def send(signer, address_or_alias, method, params, network, max_fee=None):
+def send(signer, address_or_alias, method, params, network, track, debug, max_fee=None):
     """Invoke a contract's method through an Account. Same usage as nile invoke."""
     account = Account(signer, network)
     print(
@@ -127,8 +171,14 @@ def send(signer, address_or_alias, method, params, network, max_fee=None):
         )
     )
     # Account.send is part of the public API, so it accepts addresses as string
-    out = account.send(address_or_alias, method, params, max_fee=max_fee)
-    print(out)
+    account.send(
+        address_or_alias=address_or_alias,
+        method=method,
+        calldata=params,
+        max_fee=max_fee,
+        track=track,
+        debug=debug
+    )
 
 
 @cli.command()
@@ -241,8 +291,31 @@ def version():
 @network_option
 @click.option("--contracts_file", nargs=1)
 def debug(tx_hash, network, contracts_file):
-    """Locate an error in a transaction using contracts."""
-    debug_command(normalize_number(tx_hash), network, contracts_file)
+    """Locate an error in a transaction using available contracts.
+    Alias for `nile status --debug`.
+    """
+    status_command(tx_hash, network, True, True, contracts_file)
+
+
+@cli.command()
+@click.argument("tx_hash", nargs=1)
+@network_option
+@track_option
+@debug_option
+@click.option("--contracts_file", nargs=1)
+def status(tx_hash, network, track, debug, contracts_file):
+    """
+    Get the status of a transaction.
+    $ nile status transaction_hash
+      Get the current status of a transaction.
+    $ nile status --track transaction_hash
+      Get (wait for) the final status of a transaction (REJECTED / ACCEPTED ON L2)
+    $ nile status --debug transaction_hash
+      Same as `status --track` then locate errors if rejected using local contracts
+    """
+    status_command(
+        tx_hash, network, track=track, debug=debug, contracts_file=contracts_file
+    )
 
 
 @cli.command()
