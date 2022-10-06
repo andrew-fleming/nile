@@ -62,12 +62,7 @@ def run_command(
         command.append("--inputs")
         command.extend(prepare_params(arguments))
 
-    if network == "mainnet":
-        os.environ["STARKNET_NETWORK"] = "alpha-mainnet"
-    elif network == "goerli":
-        os.environ["STARKNET_NETWORK"] = "alpha-goerli"
-    else:
-        command.append(f"--gateway_url={GATEWAYS.get(network)}")
+    command += get_network_parameter(network)
 
     command.append("--no_wallet")
 
@@ -122,3 +117,17 @@ def is_string(param):
 def is_alias(param):
     """Identiy param as alias (instead of address)."""
     return is_string(param)
+
+
+def get_network_parameter(network, with_feeder=False):
+    """Update environment variables or return network parameter for StarkNet-cli."""
+    extra_param = []
+    if network == "mainnet":
+        os.environ["STARKNET_NETWORK"] = "alpha-mainnet"
+    elif network == "goerli":
+        os.environ["STARKNET_NETWORK"] = "alpha-goerli"
+    else:
+        extra_param = [f"--gateway_url={GATEWAYS.get(network)}"]
+        if with_feeder:
+            extra_param += [f"--feeder_gateway_url={GATEWAYS.get(network)}"]
+    return extra_param

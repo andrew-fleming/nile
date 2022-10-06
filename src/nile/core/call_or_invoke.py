@@ -5,7 +5,7 @@ import os
 import subprocess
 
 from nile import deployments
-from nile.common import GATEWAYS, prepare_params
+from nile.common import GATEWAYS, prepare_params, get_network_parameter
 from nile.core import account
 from nile.utils import hex_address
 from nile.utils.status import status
@@ -33,13 +33,7 @@ def call_or_invoke(
         method,
     ]
 
-    if network == "mainnet":
-        os.environ["STARKNET_NETWORK"] = "alpha-mainnet"
-    elif network == "goerli":
-        os.environ["STARKNET_NETWORK"] = "alpha-goerli"
-    else:
-        command.append(f"--feeder_gateway_url={GATEWAYS.get(network)}")
-        command.append(f"--gateway_url={GATEWAYS.get(network)}")
+    command += get_network_parameter(network, with_feeder=True)
 
     params = prepare_params(params)
 

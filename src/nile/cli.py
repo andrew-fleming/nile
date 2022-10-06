@@ -187,13 +187,22 @@ def send(signer, address_or_alias, method, params, network, track, debug, max_fe
 @click.argument("params", nargs=-1)
 @click.option("--max_fee", nargs=1)
 @network_option
-def invoke(address_or_alias, method, params, network, max_fee=None):
+@track_option
+@debug_option
+def invoke(address_or_alias, method, params, network, track, debug, max_fee=None):
     """Invoke functions of StarkNet smart contracts."""
     if not is_alias(address_or_alias):
         address_or_alias = normalize_number(address_or_alias)
 
     out = call_or_invoke_command(
-        address_or_alias, "invoke", method, params, network, max_fee=max_fee
+        address_or_alias=address_or_alias,
+        type="invoke",
+        method=method,
+        params=params,
+        network=network,
+        max_fee=max_fee,
+        track=track,
+        debug=debug
     )
     print(out)
 
@@ -207,7 +216,13 @@ def call(address_or_alias, method, params, network):
     """Call functions of StarkNet smart contracts."""
     if not is_alias(address_or_alias):
         address_or_alias = normalize_number(address_or_alias)
-    out = call_or_invoke_command(address_or_alias, "call", method, params, network)
+    out = call_or_invoke_command(
+        address_or_alias=address_or_alias,
+        type="call",
+        method=method,
+        params=params,
+        network=network
+    )
     print(out)
 
 

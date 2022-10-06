@@ -25,16 +25,30 @@ class NileRuntimeEnvironment:
         """Compile a list of contracts."""
         return compile(contracts)
 
-    def declare(self, contract, alias=None, overriding_path=None):
+    def declare(self, contract, alias=None, overriding_path=None, track=False, debug=False):
         """Declare a smart contract class."""
-        return declare(contract, self.network, alias)
+        return declare(
+            contract_name=contract,
+            network=self.network,
+            alias=alias,
+            overriding_path=overriding_path,
+            track=track,
+            debug=debug
+        )
 
     def deploy(
-        self, contract, arguments=None, alias=None, overriding_path=None, abi=None
+        self, contract, arguments=None, alias=None, overriding_path=None, abi=None, track=False, debug=False
     ):
         """Deploy a smart contract."""
         return deploy(
-            contract, arguments, self.network, alias, overriding_path, abi=abi
+            contract_name=contract,
+            arguments=arguments,
+            network=self.network,
+            alias=alias,
+            overriding_path=overriding_path,
+            abi=abi,
+            track=track,
+            debug=debug
         )
 
     def call(self, address_or_alias, method, params=None):
@@ -45,11 +59,19 @@ class NileRuntimeEnvironment:
             call_or_invoke(address_or_alias, "call", method, params, self.network)
         ).split()
 
-    def invoke(self, address_or_alias, method, params=None):
+    def invoke(self, address_or_alias, method, params=None, track=False, debug=False):
         """Invoke a mutable function in a smart contract."""
         if not is_alias(address_or_alias):
             address_or_alias = normalize_number(address_or_alias)
-        return call_or_invoke(address_or_alias, "invoke", method, params, self.network)
+        return call_or_invoke(
+            address_or_alias=address_or_alias,
+            type="invoke",
+            method=method,
+            params=params,
+            network=self.network,
+            track=track,
+            debug=debug
+        )
 
     def get_deployment(self, address_or_alias):
         """Get a deployment by its identifier (address or alias)."""
@@ -63,9 +85,9 @@ class NileRuntimeEnvironment:
             address_or_alias = normalize_number(address_or_alias)
         return next(deployments.load_class(address_or_alias, self.network))
 
-    def get_or_deploy_account(self, signer):
+    def get_or_deploy_account(self, signer, track=False, debug=False):
         """Get or deploy an Account contract."""
-        return Account(signer, self.network)
+        return Account(signer=signer, network=self.network, track=track, debug=debug)
 
     def get_accounts(self, predeployed=False):
         """Retrieve and manage deployed accounts."""
