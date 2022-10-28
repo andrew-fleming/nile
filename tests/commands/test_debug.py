@@ -75,7 +75,9 @@ def test__locate_error_lines_with_abis_misformatted_line(mock_path, caplog):
 )
 @patch("nile.utils.debug.subprocess.check_output")
 @patch("nile.utils.debug.GATEWAYS", return_value="123")
-def test_debug_feedback_with_message(mock_gateway, mock_output, output, expected, caplog):
+def test_debug_feedback_with_message(
+    mock_gateway, mock_output, output, expected, caplog
+):
     logging.getLogger().setLevel(logging.INFO)
     mock_output.return_value = output
 
