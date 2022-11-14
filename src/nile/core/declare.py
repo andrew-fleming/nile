@@ -36,7 +36,7 @@ async def declare(
         max_fee=max_fee,
         overriding_path=overriding_path,
         mainnet_token=mainnet_token,
-        sender=sender
+        sender=sender,
     )
 
     class_hash, tx_hash = parse_information(output)

@@ -19,9 +19,5 @@ async def get_nonce_without_log(contract_address, network):
     if not str(contract_address).startswith("0x"):
         contract_address = hex(int(contract_address))
 
-    output = await execute_call(
-        "get_nonce",
-        network,
-        contract_address=contract_address
-    )
+    output = await execute_call("get_nonce", network, contract_address=contract_address)
     return int(output)

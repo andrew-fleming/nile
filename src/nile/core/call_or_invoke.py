@@ -2,7 +2,6 @@
 import logging
 import re
 
-from starkware.starknet.cli.starknet_cli import AbiFormatError
 from nile import deployments
 from nile.core import account
 from nile.execute_call import execute_call
@@ -23,6 +22,7 @@ async def call_or_invoke(
 ):
     """
     Call or invoke functions of StarkNet smart contracts.
+
     @param contract: can be an address, an alias, or an Account instance.
     @param type: can be either call or invoke.
     @param method: the targeted function.
@@ -49,9 +49,9 @@ async def call_or_invoke(
             query_flag=query_flag,
             address=address,
             abi=abi,
-            method=method
+            method=method,
         )
-    except (AbiFormatError, BaseException) as err:
+    except BaseException as err:
         if "max_fee must be bigger than 0." in str(err):
             logging.error(
                 """
@@ -63,7 +63,6 @@ async def call_or_invoke(
         else:
             logging.error(err)
             return
-
 
     if type != "call" and output:
         logging.info(output)

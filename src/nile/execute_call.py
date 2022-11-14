@@ -1,14 +1,13 @@
 """Call the starknet_cli."""
 
-import sys
 import io
+import sys
 from types import SimpleNamespace
+
 from starkware.starknet.cli import starknet_cli
 from starkware.starknet.cli.starknet_cli import NETWORKS
 
-from nile.common import (
-    BUILD_DIRECTORY, ABIS_DIRECTORY, GATEWAYS, prepare_params
-)
+from nile.common import ABIS_DIRECTORY, BUILD_DIRECTORY, GATEWAYS, prepare_params
 from nile.utils import hex_address, hex_class_hash
 
 
@@ -50,7 +49,9 @@ def set_command_args(**kwargs):
     command_args = []
     if kwargs.get("contract_name"):
         base_path = (
-            kwargs.get("overriding_path") if kwargs.get("overriding_path") else (BUILD_DIRECTORY, ABIS_DIRECTORY)
+            kwargs.get("overriding_path")
+            if kwargs.get("overriding_path")
+            else (BUILD_DIRECTORY, ABIS_DIRECTORY)
         )
         contract = f"{base_path[0]}/{kwargs.get('contract_name')}.json"
         command_args.append("--contract")

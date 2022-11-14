@@ -3,11 +3,7 @@
 import logging
 import os
 
-from nile.common import (
-    BUILD_DIRECTORY,
-    DEPLOYMENTS_FILENAME,
-    get_addresses_from_string,
-)
+from nile.common import BUILD_DIRECTORY, DEPLOYMENTS_FILENAME, get_addresses_from_string
 from nile.execute_call import execute_call
 
 
@@ -47,7 +43,7 @@ async def debug_message(error_message, tx_hash, network, contracts_file=None):
         network,
         hash=tx_hash,
         contracts=",".join(contracts),
-        error_message=True
+        error_message=True,
     )
 
 
